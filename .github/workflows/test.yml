@@ -17,6 +17,6 @@ jobs:
           sudo apt install -y gcc
       - name: Run test
         run: |
-          g++ -std=c++17 -O3 ParallelQuickSort.cpp -pthread -o run
-          ./run
+          g++ -std=c++17 -O3 quicksort/ParallelQuickSort.cpp -pthread -o run
+          ./quicksort/run
 
