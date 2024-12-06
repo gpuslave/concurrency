@@ -15,7 +15,6 @@ using Time = std::chrono::steady_clock::time_point;
 class ParallelQuickSort
 {
 private:
-  // static atomic<int> thread_pool;
   static constexpr int SEQUENTIAL_THRESHOLD = 1000;
 
 public:
@@ -109,7 +108,7 @@ pair<long, long> benchmark_sorting_ret(vector<int> &data)
 
 int main()
 {
-  const size_t size = 1'000;
+  const size_t size = 10'000;
   vector<int> data(size);
 
   random_device rd;
