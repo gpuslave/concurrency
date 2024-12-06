@@ -57,7 +57,7 @@ int main()
   for (size_t i = 0; i < threads_cnt; i++)
   {
     size_t prev_step = current_step;
-    if ((current_step + step) > (size - step))
+    if (i == threads_cnt - 1)
     {
       current_step = size;
     }
