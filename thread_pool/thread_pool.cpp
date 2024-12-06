@@ -69,11 +69,10 @@ public:
 
   size_t get_threads_count()
   {
-    return std::thread::hardware_concurrency();
+    return std::thread::hardware_concurrency() - 1;
   }
 
-  template <typename FunctionType>
-  void submit(FunctionType f)
+  void submit(const std::function<void()> &f)
   {
     work_queue.push(std::function<void()>(f));
   }
