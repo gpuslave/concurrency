@@ -7,16 +7,41 @@
 #include <vector>
 #include <random>
 #include <utility>
+#include <list>
 #include <iomanip>
 
 using namespace std;
 using Time = std::chrono::steady_clock::time_point;
 
+// sequential quicksort without async
+template <typename T>
+std::list<T> seq_quicksort(std::list<T> input)
+{
+  if (input.empty())
+    return input;
+
+  std::list<T> res;
+  res.splice(res.begin(), input, input.begin()); // grab partition element out of the array
+  T const &pivot = *res.begin();
+
+  auto divide_point = std::partition(input.begin(), input.end(),
+                                     [&](T const &t)
+                                     { return t < pivot; }); // reorders input so that all t < pivot
+                                                             // elements are first, returns first t that is >= pivot
+  std::list<T> lower_part;
+  lower_part.splice(lower_part.begin(), input, input.begin(), divide_point);
+
+  auto new_lower(seq_quicksort(std::move(lower_part)));
+  auto new_higher(seq_quicksort(std::move(input)));
+
+  res.splice(res.begin(), new_lower);
+  res.splice(res.end(), new_higher);
+
+  return res;
+}
+
 class ParallelQuickSort
 {
-private:
-  static constexpr int SEQUENTIAL_THRESHOLD = 1000;
-
 public:
   static void quicksort_async(int *arr, int l, int r)
   {
@@ -125,7 +150,7 @@ int main()
 
   const size_t test_1_size = 10;
   vector<pair<long, long>> test_1(test_1_size);
-  for (size_t i = 0; i < 10; ++i)
+  for (size_t i = 0; i < 2; ++i)
     test_1[i] = benchmark_sorting_ret(data);
 
   size_t k = 0;
@@ -145,5 +170,17 @@ int main()
   test_1_async_mean /= test_1_size;
 
   cout << "seq mean " << test_1_seq_mean << " micro seconds" << " async mean " << test_1_async_mean << " micro seconds";
+
+  cout << endl;
+  std::list<int> test_list(20, 0);
+
+  generate(test_list.begin(), test_list.end(), [&]()
+           { return dis(gen); });
+
+  test_list = std::move(seq_quicksort(test_list));
+
+  for (auto &i : test_list)
+    cout << i << " ";
+
   return 0;
 }

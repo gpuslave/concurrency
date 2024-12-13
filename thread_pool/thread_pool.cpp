@@ -49,6 +49,7 @@ public:
   thread_pool() : done(false), joiner(threads)
   {
     unsigned const thread_count = std::thread::hardware_concurrency() - 1;
+    // TODO: unsigned long const num_threads=std::min(hardware_threads!=0?hardware_threads:2,max_threads);
     try
     {
       for (unsigned i = 0; i < thread_count; ++i)
