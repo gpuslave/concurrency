@@ -40,6 +40,36 @@ std::list<T> seq_quicksort(std::list<T> input)
   return res;
 }
 
+// async quicksort
+template <typename T>
+std::list<T> async_quicksort(std::list<T> input)
+{
+  if (input.empty())
+    return input;
+
+  std::list<T> res;
+  res.splice(res.begin(), input, input.begin()); // grab partition element out of the array
+  T const &pivot = *res.begin();
+
+  auto divide_point = std::partition(input.begin(), input.end(),
+                                     [&](T const &t)
+                                     { return t < pivot; }); // reorders input so that all t < pivot
+                                                             // elements are first, returns first t that is >= pivot
+  std::list<T> lower_part;
+  lower_part.splice(lower_part.begin(), input, input.begin(), divide_point);
+
+  // system will determine right amount of thread spawning
+  std::future<std::list<T>> new_lower(std::async(&async_quicksort<T>, std::move(lower_part)));
+
+  auto new_higher(async_quicksort(std::move(input)));
+
+  res.splice(res.begin(), new_lower.get());
+  res.splice(res.begin(), new_higher);
+
+  return res;
+}
+
+// old implementation
 class ParallelQuickSort
 {
 public:
@@ -50,15 +80,15 @@ public:
 
     int p = partition(arr, l, r);
 
-    future<void> f;
-    f = async(launch::async, quicksort_async, arr, l, p - 1);
+    future<void> f = async(launch::async, quicksort_async, arr, l, p - 1);
 
     quicksort_async(arr, p + 1, r);
 
-    if (f.valid())
-    {
-      f.wait();
-    }
+    // future is not shared and is void, so no get will be executed
+    // if (f.valid())
+    // {
+    //   f.wait();
+    // }
   }
 
   static void quicksort(int *arr, int l, int r)
@@ -134,7 +164,9 @@ pair<long, long> benchmark_sorting_ret(vector<int> &data)
 int main()
 {
   const size_t size = 10'000;
+  const size_t size_small = 100;
   vector<int> data(size);
+  vector<int> data_small(size_small);
 
   random_device rd;
   mt19937 gen(rd());
@@ -142,19 +174,25 @@ int main()
 
   generate(data.begin(), data.end(), [&]()
            { return dis(gen); });
-
-  // cout << benchmark_sorting_ret(data).first << " micro seconds " << "\n"
-  //      << benchmark_sorting_ret(data).second << " micro seconds ";
+  generate(data_small.begin(), data_small.end(), [&]()
+           { return dis(gen); });
 
   cout << endl;
 
-  const size_t test_1_size = 10;
+  const size_t test_1_size = 3;
+
   vector<pair<long, long>> test_1(test_1_size);
-  for (size_t i = 0; i < 2; ++i)
+  vector<pair<long, long>> test_2(test_1_size);
+
+  for (size_t i = 0; i < test_1_size; ++i)
+  {
     test_1[i] = benchmark_sorting_ret(data);
+    test_2[i] = benchmark_sorting_ret(data_small);
+  }
 
   size_t k = 0;
   long test_1_seq_mean(0), test_1_async_mean(0);
+  long test_2_seq_mean(0), test_2_async_mean(0);
 
   for (auto test_pair : test_1)
   {
@@ -171,6 +209,25 @@ int main()
 
   cout << "seq mean " << test_1_seq_mean << " micro seconds" << " async mean " << test_1_async_mean << " micro seconds";
 
+  cout << endl
+       << "small test" << endl;
+
+  for (auto test_pair : test_2)
+  {
+    k++;
+
+    test_2_seq_mean += test_pair.first;
+    test_2_async_mean += test_pair.second;
+
+    cout << "Test" << setw(2) << k << " " << setw(3) << test_pair.first << " seq micro seconds " << setw(6) << test_pair.second << " async micro seconds " << "\n";
+  }
+
+  test_2_seq_mean /= test_1_size;
+  test_2_async_mean /= test_1_size;
+
+  cout << "seq mean " << test_2_seq_mean << " micro seconds" << " async mean " << test_2_async_mean << " micro seconds";
+
+  // new implementation test
   cout << endl;
   std::list<int> test_list(20, 0);
 
