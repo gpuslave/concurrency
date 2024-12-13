@@ -11,9 +11,9 @@
 using std::cout;
 using std::endl;
 
-void welcome()
+void st()
 {
-  cout << "This is a program with thread_pool implementation" << endl;
+  cout << "Custom thread_pool implementation using threadsafe queue" << endl;
 }
 
 void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
@@ -21,7 +21,7 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
 
 int main()
 {
-  std::thread welcome_thread(welcome);
+  std::thread welcome_thread(st);
   if (welcome_thread.joinable())
     welcome_thread.join();
 
