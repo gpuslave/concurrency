@@ -29,6 +29,8 @@ private:
   std::vector<std::thread> threads;
   join_threads joiner;
 
+  unsigned long thread_count;
+
   void worker_thread()
   {
     while (!done)
@@ -50,7 +52,7 @@ public:
   {
     unsigned long const hardware_threads = std::thread::hardware_concurrency();
 
-    unsigned long const thread_count = hardware_threads != 0 ? hardware_threads : 2;
+    thread_count = hardware_threads != 0 ? hardware_threads : 2;
     try
     {
       for (unsigned i = 0; i < thread_count; ++i)
@@ -71,7 +73,7 @@ public:
 
   size_t get_threads_count()
   {
-    return std::thread::hardware_concurrency() - 1;
+    return thread_count;
   }
 
   void submit(const std::function<void()> &f)
