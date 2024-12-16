@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 
 CXX := g++
-CXXFLAGS := -std=c++17 -O3 -pthread
+CXXFLAGS := -std=c++11 -O3 -pthread
 
 TARGET_EXEC := thread_pool 
 
