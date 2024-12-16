@@ -53,6 +53,7 @@ int main()
 
   size_t current_step = 0;
   std::mutex mut;
+  std::mutex cout_mut;
 
   std::shared_ptr<std::vector<float>> data_ptr = std::make_shared<std::vector<float>>(data);
   for (size_t i = 0; i < threads_cnt; i++)
@@ -67,14 +68,11 @@ int main()
       current_step += step;
     }
 
-    // auto task = [&]()
-    // {
-    //   work(data, prev_step, current_step, i, &mut, FILE_NAME);
-    // };
-    // std::functional<void()> task_fun = task;
+    {
+      std::unique_lock<std::mutex> cout_lk(cout_mut);
+      cout << prev_step << " --- " << current_step << endl;
+    }
 
-    // pool.submit(std::bind(work, std::ref(data), std::ref(prev_step), std::ref(current_step), i, &mut, FILE_NAME));
-    cout << prev_step << " --- " << current_step << endl;
     pool.submit(std::bind(work, data_ptr, prev_step, current_step, i, &mut, FILE_NAME));
   }
   std::this_thread::sleep_for(std::chrono::seconds(2));
