@@ -6,7 +6,8 @@
 #include <algorithm>
 #include <functional>
 #include <chrono>
-#include "thread_pool.cpp"
+
+#include "thread_pool.h"
 
 using std::cout;
 using std::endl;

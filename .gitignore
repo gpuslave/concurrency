@@ -1,2 +1,6 @@
 run*
 **/build/
+thread_pool/*.txt
+
+CppProperties.json
+.vs
