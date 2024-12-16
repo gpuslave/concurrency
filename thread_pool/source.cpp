@@ -22,6 +22,23 @@ void st()
 void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
           std::mutex *mut, const char *file_name);
 
+/**
+ * @file source.cpp
+ * @brief Thread pool implementation demonstration using concurrent file operations
+ * @author Your Name
+ *
+ * This program demonstrates concurrent processing using a custom thread pool:
+ * - Generates random floating point numbers in range [0,1)
+ * - Processes numbers in parallel using available CPU threads
+ * - Writes results to file.txt with numbers transformed to 10000.xxx format, where xxx is the 0.xxx of the generated numbers
+ * - Uses threadsafe queue for work scheduling
+ *
+ * @note Numbers may be affected by floating point rounding
+ *
+ * Build instructions:
+ * - Use provided Makefile: `make`
+ * - Executable will be in /build folder (exe: thread_pool)
+ */
 int main()
 {
   std::thread welcome_thread(st);
@@ -88,9 +105,10 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
     std::cout << "worker: " << id << " started to process data" << endl;
   }
 
+  // cpu-heavy arbitrary processing (repeated +1 addition)
   for (size_t i = start; i < stop; ++i)
   {
-    for (size_t j = 0; j < 1000; ++j)
+    for (size_t j = 0; j < 10000; ++j)
     {
       (*arr)[i] = (*arr)[i] + 1;
     }
@@ -98,6 +116,9 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
 
   std::unique_lock<std::mutex> fileMutex(*mut);
   std::ofstream file(file_name, std::ios::app);
+
+  file << std::fixed;
+  file.precision(3);
 
   file.seekp(start);
   for (size_t i = start; i < stop; i++)
