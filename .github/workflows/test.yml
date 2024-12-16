@@ -3,8 +3,8 @@ name: Test
 on: push
 
 jobs:
-  perf:
-    name: Speed Performance test
+  lab1:
+    name: Concurrent Quicksort Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -19,4 +19,21 @@ jobs:
         run: |
           g++ -std=c++17 -O3 quicksort/ParallelQuickSort.cpp -pthread -o run
           ./run
-
+  lab2:
+    name: ThreadPool Implementation Test 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Setup GCC
+        run: |
+          sudo apt update -y || true
+          sudo apt install -y gcc
+      - name: Run test
+        run: |
+          cd thread_pool
+          make
+          cd build
+          ./thread_pool
