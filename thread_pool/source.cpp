@@ -12,6 +12,8 @@
 using std::cout;
 using std::endl;
 
+std::mutex g_cout_mut;
+
 void st()
 {
   cout << "Custom thread_pool implementation using threadsafe queue" << endl;
@@ -53,7 +55,7 @@ int main()
 
   size_t current_step = 0;
   std::mutex mut;
-  std::mutex cout_mut;
+  // std::mutex cout_mut;
 
   std::shared_ptr<std::vector<float>> data_ptr = std::make_shared<std::vector<float>>(data);
   for (size_t i = 0; i < threads_cnt; i++)
@@ -69,7 +71,7 @@ int main()
     }
 
     {
-      std::unique_lock<std::mutex> cout_lk(cout_mut);
+      std::unique_lock<std::mutex> cout_lk(g_cout_mut);
       cout << prev_step << " --- " << current_step << endl;
     }
 
@@ -81,6 +83,11 @@ int main()
 void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
           std::mutex *mut, const char *file_name)
 {
+  {
+    std::unique_lock<std::mutex> cout_lk(g_cout_mut);
+    std::cout << "worker: " << id << " started to process data" << endl;
+  }
+
   for (size_t i = start; i < stop; ++i)
   {
     for (size_t j = 0; j < 1000; ++j)
@@ -91,7 +98,6 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
 
   std::unique_lock<std::mutex> fileMutex(*mut);
   std::ofstream file(file_name, std::ios::app);
-  std::cout << "id: " << id << endl;
 
   file.seekp(start);
   for (size_t i = start; i < stop; i++)
