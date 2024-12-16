@@ -25,7 +25,7 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
 /**
  * @file source.cpp
  * @brief Thread pool implementation demonstration using concurrent file operations
- * @author Your Name
+ * @author gpuslave
  *
  * This program demonstrates concurrent processing using a custom thread pool:
  * - Generates random floating point numbers in range [0,1)
