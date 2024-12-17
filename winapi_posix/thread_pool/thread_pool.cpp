@@ -10,11 +10,11 @@ thread_pool::thread_pool() : done(false), joiner(threads)
     for (unsigned i = 0; i < thread_count; ++i)
     {
 #ifdef _WIN32
-      HANDLE newthread = (HANDLE)_beginthreadex(nullptr, 0, &thread_pool::thread_wrapper, this, 0, nullptr);
+      HANDLE newthread = (HANDLE)_beginthreadex(nullptr, 0, &thread_pool::worker_thread, this, 0, nullptr);
       threads.push_back(newthread);
 #elif __linux__
       pthread_t thread;
-      pthread_create(&thread, nullptr, &thread_pool::, this);
+      pthread_create(&thread, nullptr, &thread_pool::worker_thread, this);
       threads.push_back(thread);
 #endif
     }
