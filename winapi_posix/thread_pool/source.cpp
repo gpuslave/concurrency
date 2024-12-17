@@ -48,9 +48,7 @@ void work(std::shared_ptr<std::vector<float>> arr, uint32_t start, uint32_t stop
  */
 int main()
 {
-  std::thread welcome_thread(st);
-  if (welcome_thread.joinable())
-    welcome_thread.join();
+  st();
 
   thread_pool pool;
   uint32_t threads_cnt = pool.get_threads_count();

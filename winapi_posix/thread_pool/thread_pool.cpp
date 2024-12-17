@@ -1,6 +1,6 @@
 #include "thread_pool.h"
 
-thread_pool::thread_pool() : done(false), joiner(threads)
+thread_pool::thread_pool() : done(false) // , joiner(threads)
 {
   unsigned long const hardware_threads = std::thread::hardware_concurrency();
 
@@ -29,6 +29,20 @@ thread_pool::thread_pool() : done(false), joiner(threads)
 thread_pool::~thread_pool()
 {
   done = true;
+#ifdef _WIN32
+  WaitForMultipleObjects(threads.size(), threads.data(), TRUE, INFINITE);
+
+  for (uint32_t i = 0; i < threads.size(); ++i)
+  {
+    CloseHandle(threads[i]);
+  }
+#elif __linux__
+  for (uint32_t i = 0; i < threads.size(); ++i)
+  {
+    std::cout << i << " ";
+    pthread_join(threads[i], nullptr);
+  }
+#endif
 }
 
 #ifdef _WIN32

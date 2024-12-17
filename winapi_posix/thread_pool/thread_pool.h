@@ -2,6 +2,7 @@
 #include <vector>
 #include <thread>
 #include <functional>
+#include <iostream>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -38,8 +39,9 @@ public:
       CloseHandle(threads[i]);
     }
 #elif __linux__
-    for (unsigned long i = 0; i < threads.size(); ++i)
+    for (uint32_t i = 0; i < threads.size(); ++i)
     {
+      std::cout << i << " ";
       pthread_join(threads[i], nullptr);
     }
 #endif
@@ -52,7 +54,7 @@ class thread_pool
 private:
   std::atomic_bool done;
   threadsafe_queue<std::function<void()>> work_queue;
-  join_threads joiner;
+  // join_threads joiner;
 #ifdef _WIN32
   std::vector<HANDLE> threads;
 #elif __linux__
