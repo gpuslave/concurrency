@@ -33,7 +33,7 @@ public:
 #ifdef _WIN32
     WaitForMultipleObjects(threads.size(), threads.data(), TRUE, INFINITE);
 
-    for (unsigned long i = 0; i < threads.size(); ++i)
+    for (uint32_t i = 0; i < threads.size(); ++i)
     {
       CloseHandle(threads[i]);
     }
@@ -59,7 +59,7 @@ private:
   std::vector<pthread_t> threads;
 #endif
 
-  unsigned long thread_count;
+  uint32_t thread_count;
 
 #ifdef _WIN32
   static unsigned int __stdcall worker_thread(void *param);

@@ -26,7 +26,7 @@ void st()
        << endl;
 }
 
-void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
+void work(std::shared_ptr<std::vector<float>> arr, uint32_t start, uint32_t stop, int id,
           std::mutex *mut, const char *file_name);
 
 /**
@@ -53,7 +53,7 @@ int main()
     welcome_thread.join();
 
   thread_pool pool;
-  size_t threads_cnt = pool.get_threads_count();
+  uint32_t threads_cnt = pool.get_threads_count();
   cout << "Threads currently available on this device: " << threads_cnt << endl
        << endl;
 
@@ -62,7 +62,7 @@ int main()
   file.clear();
   file.close();
 
-  const size_t size = 50;
+  const uint32_t size = 50;
   std::vector<float> data(size);
 
   std::random_device rd;
@@ -76,18 +76,18 @@ int main()
   for (auto elem : data)
     cout << elem << endl;
 
-  size_t step = floor(size / threads_cnt);
+  uint32_t step = floor(size / threads_cnt);
   cout << endl
        << "Parallel processing will be devided by portions, each portion will be " << step << " numbers" << endl
        << endl;
 
-  size_t current_step = 0;
+  uint32_t current_step = 0;
   std::mutex mut;
 
   std::shared_ptr<std::vector<float>> data_ptr = std::make_shared<std::vector<float>>(data);
-  for (size_t i = 0; i < threads_cnt; i++)
+  for (uint32_t i = 0; i < threads_cnt; i++)
   {
-    size_t prev_step = current_step;
+    uint32_t prev_step = current_step;
     if (i == threads_cnt - 1)
     {
       current_step = size;
@@ -111,7 +111,7 @@ int main()
        << "Data processing is done" << endl;
 }
 
-void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
+void work(std::shared_ptr<std::vector<float>> arr, uint32_t start, uint32_t stop, int id,
           std::mutex *mut, const char *file_name)
 {
   {
@@ -120,9 +120,9 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
   }
 
   // cpu-heavy arbitrary processing (repeated +1 addition)
-  for (size_t i = start; i < stop; ++i)
+  for (uint32_t i = start; i < stop; ++i)
   {
-    for (size_t j = 0; j < 10000; ++j)
+    for (uint32_t j = 0; j < 10000; ++j)
     {
       (*arr)[i] = (*arr)[i] + 1;
     }
@@ -135,7 +135,7 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
   file.precision(3);
 
   file.seekp(start);
-  for (size_t i = start; i < stop; i++)
+  for (uint32_t i = start; i < stop; i++)
   {
     file << (*arr)[i] << endl;
   }

@@ -7,7 +7,7 @@ thread_pool::thread_pool() : done(false), joiner(threads)
   thread_count = hardware_threads != 0 ? hardware_threads : 2;
   try
   {
-    for (unsigned i = 0; i < thread_count; ++i)
+    for (uint32_t i = 0; i < thread_count; ++i)
     {
 #ifdef _WIN32
       HANDLE newthread = (HANDLE)_beginthreadex(nullptr, 0, &thread_pool::worker_thread, this, 0, nullptr);
