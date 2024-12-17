@@ -128,7 +128,7 @@ void work(std::shared_ptr<std::vector<float>> arr, uint32_t start, uint32_t stop
     }
   }
 
-  std::unique_lock<std::mutex> fileMutex(*mut);
+  std::lock_guard<std::mutex> fileMutex(*mut);
   std::ofstream file(file_name, std::ios::app);
 
   file << std::fixed;
