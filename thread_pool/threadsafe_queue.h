@@ -84,35 +84,39 @@ public:
   threadsafe_queue() : head(new node), tail(head.get()) {}
   threadsafe_queue(const threadsafe_queue &other) = delete;
   threadsafe_queue &operator=(const threadsafe_queue &other) = delete;
+  threadsafe_queue &operator=(threadsafe_queue &&other) = delete;
 
-  //  std::shared_ptr<T> try_pop();
+  threadsafe_queue(threadsafe_queue &&other) noexcept : head(std::move(other.head)),
+                                                        tail(other.tail), head_mutex(), tail_mutex(), data_cond()
+  {
+    other.tail = nullptr;
+    other.head.reset(new node);
+    other.tail = other.head.get();
+  }
+
   std::shared_ptr<T> try_pop()
   {
     std::unique_ptr<node> old_head = try_pop_head();
     return bool(old_head) ? old_head->data : std::shared_ptr<T>();
   }
 
-  // bool try_pop(T &value);
   bool try_pop(T &value)
   {
     std::unique_ptr<node> const old_head = try_pop_head(value);
     return bool(old_head);
   }
 
-  // std::shared_ptr<T> wait_and_pop();
   std::shared_ptr<T> wait_and_pop()
   {
     std::unique_ptr<node> const old_head = wait_pop_head();
     return old_head->data;
   }
 
-  //  void wait_and_pop(T &value);
   void wait_and_pop(T &value)
   {
     std::unique_ptr<node> const old_head = wait_pop_head(value);
   }
 
-  //  void push(T new_value);
   void push(T new_value)
   {
     std::shared_ptr<T> new_data(std::make_shared<T>(std::move(new_value)));

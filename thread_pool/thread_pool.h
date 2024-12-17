@@ -41,6 +41,18 @@ public:
   thread_pool();
   ~thread_pool();
 
+  thread_pool(thread_pool &&other) : done(other.done.load()),
+                                     work_queue(std::move(other.work_queue)),
+                                     threads(std::move(other.threads)),
+                                     joiner(threads),
+                                     thread_count(other.thread_count)
+  {
+    other.done = true;
+  }
+
+  thread_pool(const thread_pool &) = delete;
+  thread_pool &operator=(const thread_pool &) = delete;
+
   size_t get_threads_count();
   void submit(const std::function<void()> &f);
 };
