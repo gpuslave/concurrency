@@ -5,8 +5,10 @@
 
 #include "threadsafe_queue.h"
 
+// helper class
 class join_threads
 {
+private:
   std::vector<std::thread> &threads;
 
 public:
@@ -22,6 +24,7 @@ public:
   }
 };
 
+// custom thread_pool implementation using threadsafe queue
 class thread_pool
 {
 private:
@@ -32,53 +35,12 @@ private:
 
   unsigned long thread_count;
 
-  void worker_thread()
-  {
-    while (!done)
-    {
-      std::function<void()> task;
-      if (work_queue.try_pop(task))
-      {
-        task();
-      }
-      else
-      {
-        std::this_thread::yield();
-      }
-    }
-  }
+  void worker_thread();
 
 public:
-  thread_pool() : done(false), joiner(threads)
-  {
-    unsigned long const hardware_threads = std::thread::hardware_concurrency();
+  thread_pool();
+  ~thread_pool();
 
-    thread_count = hardware_threads != 0 ? hardware_threads : 2;
-    try
-    {
-      for (unsigned i = 0; i < thread_count; ++i)
-      {
-        threads.push_back(std::thread(&thread_pool::worker_thread, this));
-      }
-    }
-    catch (...)
-    {
-      done = true;
-      throw;
-    }
-  }
-  ~thread_pool()
-  {
-    done = true;
-  }
-
-  size_t get_threads_count()
-  {
-    return thread_count;
-  }
-
-  void submit(const std::function<void()> &f)
-  {
-    work_queue.push(std::function<void()>(f));
-  }
+  size_t get_threads_count();
+  void submit(const std::function<void()> &f);
 };
