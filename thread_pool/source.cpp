@@ -5,18 +5,25 @@
 #include <random>
 #include <algorithm>
 #include <functional>
+#include <string>
 #include <chrono>
 
 #include "thread_pool.h"
 
 using std::cout;
 using std::endl;
+using std::string;
 
 std::mutex g_cout_mut;
 
 void st()
 {
-  cout << "Custom thread_pool implementation using threadsafe queue" << endl;
+  cout << "This program demonstrates concurrent processing using a custom thread pool: " << endl;
+  cout << "Generates random floating point numbers in range [0,1)" << endl;
+  cout << "Processes numbers in parallel using available CPU threads" << endl;
+  cout << "Writes results to file.txt with numbers transformed to 10000.xxx format, where xxx is the 0.xxx of the generated numbers" << endl;
+  cout << "Uses threadsafe queue for work scheduling" << endl
+       << endl;
 }
 
 void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
@@ -47,7 +54,8 @@ int main()
 
   thread_pool pool;
   size_t threads_cnt = pool.get_threads_count();
-  cout << "Threads available: " << threads_cnt << endl;
+  cout << "Threads currently available on this device: " << threads_cnt << endl
+       << endl;
 
   const char *FILE_NAME = "file.txt";
   std::ofstream file(FILE_NAME);
@@ -64,15 +72,17 @@ int main()
   std::generate(data.begin(), data.end(), [&]()
                 { return dis(gen); });
 
+  cout << "Randomly generated numbers (amount:" << size << "):" << endl;
   for (auto elem : data)
     cout << elem << endl;
 
   size_t step = floor(size / threads_cnt);
-  cout << "step: " << step << endl;
+  cout << endl
+       << "Parallel processing will be devided by portions, each portion will be " << step << " numbers" << endl
+       << endl;
 
   size_t current_step = 0;
   std::mutex mut;
-  // std::mutex cout_mut;
 
   std::shared_ptr<std::vector<float>> data_ptr = std::make_shared<std::vector<float>>(data);
   for (size_t i = 0; i < threads_cnt; i++)
@@ -89,12 +99,16 @@ int main()
 
     {
       std::unique_lock<std::mutex> cout_lk(g_cout_mut);
-      cout << prev_step << " --- " << current_step << endl;
+      cout << "Numbers from " << prev_step << " through " << current_step - 1 << " were submitted to the pool of processing" << endl;
+      // cout << "Waiting for the worker to pick up the data and begin processing" << endl;
     }
 
     pool.submit(std::bind(work, data_ptr, prev_step, current_step, i, &mut, FILE_NAME));
   }
   std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  cout << endl
+       << "Data processing is done" << endl;
 }
 
 void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, int id,
@@ -102,7 +116,7 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
 {
   {
     std::unique_lock<std::mutex> cout_lk(g_cout_mut);
-    std::cout << "worker: " << id << " started to process data" << endl;
+    std::cout << "Data bulk: " << id << " is being processed by the worker" << endl;
   }
 
   // cpu-heavy arbitrary processing (repeated +1 addition)
@@ -127,5 +141,6 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
   }
 
   file.close();
+  std::cout << "Data bulk: " << id << "  -- done " << endl;
   // std::cout << "thread " << id << "closed file" << endl;
 }
