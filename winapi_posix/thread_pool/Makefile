@@ -1,8 +1,8 @@
 SHELL=/bin/bash
 
-# LDFLAGS := -pthread 
+LDFLAGS := -pthread 
 CXX := g++
-CXXFLAGS := -std=c++11 -O3 # -pthread
+CXXFLAGS := -std=c++11 -O3 -pthread
 
 TARGET_EXEC := thread_pool 
 
