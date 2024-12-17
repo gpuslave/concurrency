@@ -98,7 +98,7 @@ int main()
     }
 
     {
-      std::unique_lock<std::mutex> cout_lk(g_cout_mut);
+      std::lock_guard<std::mutex> cout_lk(g_cout_mut);
       cout << "Numbers from " << prev_step << " through " << current_step - 1 << " were submitted to the pool of processing" << endl;
       // cout << "Waiting for the worker to pick up the data and begin processing" << endl;
     }
@@ -115,7 +115,7 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
           std::mutex *mut, const char *file_name)
 {
   {
-    std::unique_lock<std::mutex> cout_lk(g_cout_mut);
+    std::lock_guard<std::mutex> cout_lk(g_cout_mut);
     std::cout << "Data bulk: " << id << " is being processed by the worker" << endl;
   }
 
@@ -141,6 +141,9 @@ void work(std::shared_ptr<std::vector<float>> arr, size_t start, size_t stop, in
   }
 
   file.close();
-  std::cout << "Data bulk: " << id << "  -- done " << endl;
-  // std::cout << "thread " << id << "closed file" << endl;
+
+  {
+    std::lock_guard<std::mutex> cout_lk(g_cout_mut);
+    std::cout << "Data bulk: " << id << "  -- done " << endl;
+  }
 }
