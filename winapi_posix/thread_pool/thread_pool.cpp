@@ -31,12 +31,17 @@ thread_pool::~thread_pool()
   done = true;
 }
 
-void thread_pool::worker_thread()
+#ifdef _WIN32
+unsigned int __stdcall thread_pool::worker_thread(void *param)
+#elif __linux__
+void *thread_pool::worker_thread(void *param)
+#endif
 {
-  while (!done)
+  thread_pool *pool = static_cast<thread_pool *>(param);
+  while (!pool->done)
   {
     std::function<void()> task;
-    if (work_queue.try_pop(task))
+    if (pool->work_queue.try_pop(task))
     {
       task();
     }
@@ -45,6 +50,12 @@ void thread_pool::worker_thread()
       std::this_thread::yield();
     }
   }
+#ifdef _WIN32
+  _endthreadex(0);
+  return 0;
+#elif __linux__
+  return nullptr;
+#endif
 }
 
 size_t thread_pool::get_threads_count()

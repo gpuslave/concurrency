@@ -15,18 +15,34 @@
 class join_threads
 {
 private:
-  std::vector<std::thread> &threads;
+#ifdef _WIN32
+  std::vector<HANDLE> &threads;
+#elif __linux__
+  std::vector<pthread_t> &threads;
+#endif
 
 public:
-  explicit join_threads(std::vector<std::thread> &threads_) : threads(threads_) {}
+#ifdef _WIN32
+  explicit join_threads(std::vector<HANDLE> &threads_) : threads(threads_) {}
+#elif __linux__
+  explicit join_threads(std::vector<pthread_t> &threads_) : threads(threads_) {}
+#endif
 
   ~join_threads()
   {
+#ifdef _WIN32
+    WaitForMultipleObjects(threads.size(), threads.data(), TRUE, INFINITE);
+
     for (unsigned long i = 0; i < threads.size(); ++i)
     {
-      if (threads[i].joinable())
-        threads[i].join();
+      CloseHandle(threads[i]);
     }
+#elif __linux__
+    for (unsigned long i = 0; i < threads.size(); ++i)
+    {
+      pthread_join(threads[i], nullptr);
+    }
+#endif
   }
 };
 
@@ -44,37 +60,19 @@ private:
 #endif
 
   unsigned long thread_count;
-  void worker_thread();
 
 #ifdef _WIN32
-  static unsigned int __stdcall thread_wrapper(void *param)
-  {
-    thread_pool *pool = static_cast<thread_pool *>(param);
-    try
-    {
-      pool->worker_thread();
-    }
-    catch (...)
-    {
-    }
-
-    return 0;
-  }
+  static unsigned int __stdcall worker_thread(void *param);
 #elif __linux__
+  static void *worker_thread(void *param);
 #endif
 
 public:
   thread_pool();
   ~thread_pool();
 
-  thread_pool(thread_pool &&other) : done(other.done.load()),
-                                     work_queue(std::move(other.work_queue)),
-                                     threads(std::move(other.threads)),
-                                     joiner(threads),
-                                     thread_count(other.thread_count)
-  {
-    other.done = true;
-  }
+  thread_pool &operator=(thread_pool &&) = delete;
+  thread_pool(thread_pool &&) = delete;
 
   thread_pool(const thread_pool &) = delete;
   thread_pool &operator=(const thread_pool &) = delete;
