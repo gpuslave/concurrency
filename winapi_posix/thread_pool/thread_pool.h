@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <strsafe.h>
 #elif __linux__
 #include <pthread.h>
 #endif
