@@ -50,7 +50,7 @@ int main()
 {
   st();
 
-  thread_pool pool;
+  thread_pool pool(&g_cout_mut);
   uint32_t threads_cnt = pool.get_threads_count();
   cout << "Threads currently available on this device: " << threads_cnt << endl
        << endl;

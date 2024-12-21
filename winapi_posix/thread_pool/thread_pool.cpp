@@ -1,60 +1,34 @@
 #include "thread_pool.h"
+#include <system_error>
 
-thread_pool::thread_pool() : done(false) // , joiner(threads)
+thread_pool::thread_pool(std::mutex *cout_mut) : done(false)
 {
   unsigned long const hardware_threads = std::thread::hardware_concurrency();
 
   thread_count = hardware_threads != 0 ? hardware_threads : 2;
   try
   {
+    DWORD last_thread_err;
     for (uint32_t i = 0; i < thread_count; ++i)
     {
 #ifdef _WIN32
       HANDLE newthread = (HANDLE)_beginthreadex(nullptr, 0, &thread_pool::worker_thread, this, 0, nullptr);
 
-      int err = errno;
-      if (err != 0 || newthread == nullptr)
+      last_thread_err = GetLastError();
+
       {
-        // std::cout << "Thread creation using _beginthreadex failed with " << err << " error code." << std::endl;
-        std::cerr << "Thread creation using _beginthreadex failed with " << err << " error code." << std::endl;
+        std::lock_guard<std::mutex> cout_lk(*cout_mut);
+        std::cout << last_thread_err << " - " << std::system_category().message(last_thread_err) << std::endl;
+      }
+
+      if (newthread == nullptr)
+      {
+        std::cerr << "Thread creation using _beginthreadex failed with " << last_thread_err << " error code." << std::endl;
       }
       else
       {
         threads.push_back(newthread);
       }
-
-      // DWORD dw = GetLastError();
-      // std::cout << std::endl
-      //           << dw << std::endl;
-
-      // LPCTSTR lpszFunction = TEXT("_beginthreadex");
-      // LPVOID lpMsgBuf;
-      // LPVOID lpDisplayBuf;
-      // DWORD dw = GetLastError();
-      // std::cout << std::endl
-      //           << dw << std::endl;
-
-      // FormatMessage(
-      //     FORMAT_MESSAGE_ALLOCATE_BUFFER |
-      //         FORMAT_MESSAGE_FROM_SYSTEM |
-      //         FORMAT_MESSAGE_IGNORE_INSERTS,
-      //     NULL,
-      //     dw,
-      //     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-      //     (LPTSTR)&lpMsgBuf,
-      //     0, NULL);
-
-      // lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
-      //                                   (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
-      // StringCchPrintf((LPTSTR)lpDisplayBuf,
-      //                 LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-      //                 TEXT("%s failed with error %d: %s"),
-      //                 lpszFunction, dw, lpMsgBuf);
-      // MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
-
-      // LocalFree(lpMsgBuf);
-      // LocalFree(lpDisplayBuf);
-      // ExitProcess(dw);
 
 #elif __linux__
       pthread_t thread;
@@ -73,7 +47,6 @@ thread_pool::thread_pool() : done(false) // , joiner(threads)
     }
     if (!threads.size())
     {
-      // std::cout << "All threads failed";
       std::cerr << "All threads failed";
     }
   }

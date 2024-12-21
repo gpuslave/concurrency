@@ -71,7 +71,7 @@ private:
 #endif
 
 public:
-  thread_pool();
+  thread_pool(std::mutex *);
   ~thread_pool();
 
   thread_pool &operator=(thread_pool &&) = delete;
