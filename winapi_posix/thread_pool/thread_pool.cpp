@@ -8,13 +8,12 @@ thread_pool::thread_pool(std::mutex *cout_mut) : done(false)
   thread_count = hardware_threads != 0 ? hardware_threads : 2;
   try
   {
-    DWORD last_thread_err;
     for (uint32_t i = 0; i < thread_count; ++i)
     {
 #ifdef _WIN32
       HANDLE newthread = (HANDLE)_beginthreadex(nullptr, 0, &thread_pool::worker_thread, this, 0, nullptr);
 
-      last_thread_err = GetLastError();
+      DWORD last_thread_err = GetLastError();
 
       {
         std::lock_guard<std::mutex> cout_lk(*cout_mut);
